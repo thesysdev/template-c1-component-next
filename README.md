@@ -1,6 +1,8 @@
 # C1 App Template
 
-This is a [C1 by Thesys](https://thesys.dev) project bootstrapped with `create-next-app`
+Template repository for a generative UI app, powered by [C1 by Thesys](https://thesys.dev), and bootstrapped with `create-next-app`
+
+[![Built with Thesys](https://thesys.dev/built-with-thesys-badge.svg)](https://thesys.dev)
 
 ## Getting Started
 
