@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   });
 
   const llmStream = await client.chat.completions.create({
-    model: "c1-nightly",
+    model: "c1/anthropic/claude-sonnet-4/v-20250815",
     messages: [...messages],
     stream: true,
   });
