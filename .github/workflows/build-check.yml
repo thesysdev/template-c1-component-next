@@ -10,6 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     if: github.repository == 'thesysdev/template-c1-component-next'
     
+    env:
+      THESYS_API_KEY: dummy-api-key-for-testing
+    
     strategy:
       matrix:
         node-version: [20.9.0,22,24]
