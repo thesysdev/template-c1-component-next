@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   });
 
   const llmStream = await client.chat.completions.create({
-    model: "c1/openai/gpt-5/v-20250831",
+    model: "c1/openai/gpt-5/v-20250915",
     messages: [...messages],
     stream: true,
   });
