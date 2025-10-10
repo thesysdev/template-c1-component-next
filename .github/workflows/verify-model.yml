@@ -1,0 +1,28 @@
+name: Verify C1 Model
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - master
+
+jobs:
+  verify-model:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Verify model is valid
+        env:
+          THESYS_API_KEY: ${{ secrets.THESYS_API_KEY }}
+        run: |
+          chmod +x .github/scripts/verify-model.sh
+          .github/scripts/verify-model.sh
+
