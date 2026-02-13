@@ -1,3 +1,5 @@
+import { AttachedFile } from "../hooks/useUIState";
+
 /**
  * Type definition for parameters required by the makeApiCall function.
  * This includes both the API request parameters and state management callbacks.
@@ -7,6 +9,8 @@ export type ApiCallParams = {
   searchQuery: string;
   /** Optional previous response for context in follow-up queries */
   previousC1Response?: string;
+  /** Optional attached file (image or PDF) to include in the request */
+  attachedFile?: AttachedFile | null;
   /** Callback to update the response state */
   setC1Response: (response: string) => void;
   /** Callback to update the loading state */
@@ -26,6 +30,7 @@ export type ApiCallParams = {
 export const makeApiCall = async ({
   searchQuery,
   previousC1Response,
+  attachedFile,
   setC1Response,
   setIsLoading,
   abortController,
@@ -42,16 +47,27 @@ export const makeApiCall = async ({
     setAbortController(newAbortController);
     setIsLoading(true);
 
+    // Build the request body, including file data if attached
+    const requestBody: Record<string, unknown> = {
+      prompt: searchQuery,
+      previousC1Response,
+    };
+
+    if (attachedFile) {
+      requestBody.attachedFile = {
+        base64: attachedFile.base64,
+        mimeType: attachedFile.mimeType,
+        fileName: attachedFile.fileName,
+      };
+    }
+
     // Make the API request with the abort signal
     const response = await fetch("/api/ask", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        prompt: searchQuery,
-        previousC1Response,
-      }),
+      body: JSON.stringify(requestBody),
       signal: newAbortController.signal,
     });
 
