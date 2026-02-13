@@ -1,6 +1,9 @@
 import { NextRequest } from "next/server";
 import OpenAI from "openai";
-import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
+import {
+  ChatCompletionMessageParam,
+  ChatCompletionContentPart,
+} from "openai/resources/chat/completions";
 import { transformStream } from "@crayonai/stream";
 
 const client = new OpenAI({
@@ -8,10 +11,54 @@ const client = new OpenAI({
   apiKey: process.env.THESYS_API_KEY,
 });
 
+type AttachedFilePayload = {
+  base64: string;
+  mimeType: string;
+  fileName: string;
+};
+
+/**
+ * Build the user message content, supporting multimodal (image/PDF) attachments.
+ */
+function buildUserContent(
+  prompt: string,
+  attachedFile?: AttachedFilePayload
+): string | ChatCompletionContentPart[] {
+  if (!attachedFile) {
+    return prompt;
+  }
+
+  const parts: ChatCompletionContentPart[] = [
+    { type: "text", text: prompt },
+  ];
+
+  if (attachedFile.mimeType.startsWith("image/")) {
+    // Images: use image_url with base64 data URL
+    parts.push({
+      type: "image_url",
+      image_url: {
+        url: `data:${attachedFile.mimeType};base64,${attachedFile.base64}`,
+      },
+    });
+  } else if (attachedFile.mimeType === "application/pdf") {
+    // PDFs: use file content part
+    parts.push({
+      type: "file",
+      file: {
+        data: attachedFile.base64,
+        filename: attachedFile.fileName,
+      },
+    } as ChatCompletionContentPart);
+  }
+
+  return parts;
+}
+
 export async function POST(req: NextRequest) {
-  const { prompt, previousC1Response } = (await req.json()) as {
+  const { prompt, previousC1Response, attachedFile } = (await req.json()) as {
     prompt: string;
     previousC1Response?: string;
+    attachedFile?: AttachedFilePayload;
   };
 
   const messages: ChatCompletionMessageParam[] = [];
@@ -25,11 +72,11 @@ export async function POST(req: NextRequest) {
 
   messages.push({
     role: "user",
-    content: prompt,
+    content: buildUserContent(prompt, attachedFile),
   });
 
   const llmStream = await client.chat.completions.create({
-    model: "c1/openai/gpt-5/v-20250915",
+    model: "c1/openai/gpt-5/v-20251230",
     messages: [...messages],
     stream: true,
   });
